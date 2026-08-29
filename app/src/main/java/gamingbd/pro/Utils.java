@@ -18,7 +18,7 @@ import eu.chainfire.libsuperuser.Shell;
 
 public class Utils {
 
-    public static final String targetPackage = "com.imangi.templerun" ;   // Target package name
+    public static final String targetPackage = "com.th3project.standleo" ;   // Target package name
     public static final String injector      = "AndKittyInjector"     ;   // Name of the injector executable, defined in CMakeLists.txt
     public static final String payload       = "libServer.so"         ;   // Name of the payload, defined in CMakeLists.txt
 
