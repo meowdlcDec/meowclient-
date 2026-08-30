@@ -371,7 +371,6 @@ void UpdateReplace(void* instance){
     if( instance != NULL ){
         if (States::esp) {
             unsigned long libBase = getLibraryBase("libil2cpp.so");
-            // player_main_camera = 0xE8, view_matrix = 0x100
             LOGD("ESP: libBase=%p", (void*)libBase);
             // Здесь будет чтение ViewMatrix и отрисовка ESP
         }
@@ -394,12 +393,12 @@ void initializeUnityHooks(){
     unsigned long libBase = getLibraryBase("libil2cpp.so");
     LOGD("Base of libil2cpp.so : %p ", (void*) libBase );
 
-    DobbyHook( (void*) getRealOffset(libBase,CharacterPlayer::Update          ), (void*) UpdateReplace            , (void**) &UpdateOrigin            );
+    DobbyHook( (void*) getRealOffset(libBase,CharacterPlayer::Update), (void*) UpdateReplace, (void**) &UpdateOrigin );
 }
 
 void* hackThread(void* ){
 
-    // initializeUnityHooks(); // Пока отключено
+    initializeUnityHooks();
     initializeImGuiHooks();
 
     return  NULL;
