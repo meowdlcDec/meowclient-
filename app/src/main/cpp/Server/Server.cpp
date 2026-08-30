@@ -404,6 +404,11 @@ void* hackThread(void* ){
     return  NULL;
 }
 
+extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
+    LOGD("JNI_OnLoad called");
+    return JNI_VERSION_1_6;
+}
+
 __attribute__((constructor))
 int main(){
 
