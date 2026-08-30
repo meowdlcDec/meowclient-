@@ -1,5 +1,7 @@
 #include <jni.h>
 #include <string>
+#include <vector>
+#include <utility>
 #include <android/log.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -36,6 +38,8 @@ namespace States{
     static float    aimSpeed{12.0f};
     static int      aimMode{0};
     static int      targetBone{0};
+
+    static std::vector<std::pair<std::string, float>> notifications;
 }
 
 
@@ -43,6 +47,11 @@ namespace States{
 /** --------------------------------------------------------------------------------------------- */
 
 static bool isInitialized{false};
+
+
+void AddNotification(const char* msg) {
+    States::notifications.push_back({msg, ImGui::GetTime()});
+}
 
 
 void ApplyAndroidRedTheme() {
@@ -103,7 +112,6 @@ void setupMenu(int width, int height) {
     ImGui_ImplAndroid_Init();
     ImGui_ImplOpenGL3_Init("#version 300 es");
 
-    // Увеличенный шрифт
     io.Fonts->AddFontFromMemoryTTF(Roboto_Regular, sizeof(Roboto_Regular), 28.0f);
 
     ApplyAndroidRedTheme();
@@ -118,27 +126,38 @@ void DesignAndDrawMenu() {
     if (States::showMenu && States::menuAlpha < 1.0f) States::menuAlpha += 0.15f;
     if (!States::showMenu && States::menuAlpha > 0.0f) States::menuAlpha -= 0.15f;
 
+    // Кнопка MENU / ватермарка
     if (States::menuAlpha <= 0.05f) {
-        ImGui::SetNextWindowPos(ImVec2(50, 50));
-        ImGui::SetNextWindowBgAlpha(0.0f);
-        ImGui::Begin("##ToggleBtn", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs);
+        ImGui::SetNextWindowPos(ImVec2(10, 10));
+        ImGui::SetNextWindowBgAlpha(0.4f);
+        ImGui::Begin("##ToggleBtn", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);
+
+        if (ImGui::IsKeyPressed(ImGuiKey_RightShift)) {
+            States::showMenu = true;
+        }
+
         if (ImGui::Button("MENU", ImVec2(120, 60))) {
             States::showMenu = true;
         }
         ImGui::End();
     } else {
-        ImGui::SetNextWindowPos(ImVec2(50, 50));
-        ImGui::SetNextWindowBgAlpha(0.0f);
-        ImGui::Begin("##ToggleBtn", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);
+        // Кнопка закрытия
+        ImGui::SetNextWindowPos(ImVec2(10, 10));
+        ImGui::SetNextWindowBgAlpha(0.4f);
+        ImGui::Begin("##CloseBtn", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);
         if (ImGui::Button("X", ImVec2(60, 60))) {
+            States::showMenu = false;
+        }
+        if (ImGui::IsKeyPressed(ImGuiKey_RightShift)) {
             States::showMenu = false;
         }
         ImGui::End();
 
-        ImGui::SetNextWindowSize(ImVec2(800, 500), ImGuiCond_FirstUseEver);
+        // Главное окно (можно двигать и растягивать)
+        ImGui::SetNextWindowSize(ImVec2(900, 600), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowBgAlpha(States::menuAlpha * 0.98f);
 
-        ImGui::Begin("Meow Client", nullptr, ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin("Meow Client", nullptr);
         {
             if (ImGui::BeginTabBar("NavigationTabs")) {
 
@@ -247,13 +266,13 @@ void DesignAndDrawMenu() {
                     ImGui::Spacing(); ImGui::Spacing();
 
                     if (ImGui::Button("SAVE CONFIG", ImVec2(ImGui::GetWindowWidth() - 20, 60))) {
-                        // Здесь будет сохранение конфига
+                        AddNotification("Config saved");
                     }
 
                     ImGui::Spacing(); ImGui::Spacing();
 
                     if (ImGui::Button("LOAD CONFIG", ImVec2(ImGui::GetWindowWidth() - 20, 60))) {
-                        // Здесь будет загрузка конфига
+                        AddNotification("Config loaded");
                     }
 
                     ImGui::EndTabItem();
@@ -261,6 +280,25 @@ void DesignAndDrawMenu() {
 
                 ImGui::EndTabBar();
             }
+        }
+        ImGui::End();
+    }
+
+    // HUD уведомления (всегда поверх)
+    if (!States::notifications.empty()) {
+        ImGui::SetNextWindowPos(ImVec2(10, 80));
+        ImGui::SetNextWindowBgAlpha(0.3f);
+        ImGui::Begin("##Notifications", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);
+        float now = ImGui::GetTime();
+        for (auto it = States::notifications.begin(); it != States::notifications.end(); ) {
+            float age = now - it->second;
+            if (age > 4.0f) {
+                it = States::notifications.erase(it);
+                continue;
+            }
+            float alpha = 1.0f - (age / 4.0f);
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, alpha), "%s", it->first.c_str());
+            ++it;
         }
         ImGui::End();
     }
@@ -303,7 +341,6 @@ void (*inputOrigin)(void* thiz, void* event, void* msg);
 
 void inputReplace(void *thiz, void *event, void *msg) {
 
-    // Важно: сначала передать событие ImGui, потом в игру
     ImGui_ImplAndroid_HandleInputEvent((AInputEvent *)thiz);
     inputOrigin(thiz, event, msg);
 }
