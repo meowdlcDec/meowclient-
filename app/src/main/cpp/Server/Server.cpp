@@ -84,48 +84,18 @@ void setupMenu(int width, int height) {
 
 /**
  * @brief Design and Draws the ImGui menu for the mod.
- *
- * This function creates a simple ImGui window named "Mod Menu" and populates it with various
- * UI elements, including text, checkboxes, sliders, and buttons, windows etc.
- *
- * @note This function is intended for demonstration purposes and can be customized to suit
- *       the specific needs of your mod menu UI design.
  */
 void DesignAndDrawMenu() {
 
-    /* Show a simple window. Use a ImGui::Begin() & ImGui::End() pair to create a window. */
     {
-        /* Create a window called "Mod Menu" and append into it. */
-        ImGui::Begin("Mod Menu");
+        ImGui::Begin("Meow Client");
 
-        {
-            // Get the current style
-            ImGuiStyle& style = ImGui::GetStyle();
+        ImGui::Text("Meow Client v1.0");
+        ImGui::Separator();
 
-            // Store the original text color
-            ImVec4 originalTextColor = style.Colors[ImGuiCol_Text];
+        ImGui::Checkbox("Speed Hack", &States::setInvincibility);
+        ImGui::Checkbox("SpinBot 360", &States::avoidCollision);
 
-            // Change the text color (e.g., to red)
-            style.Colors[ImGuiCol_Text] = ImVec4(0.0f, 1.0f, 0.0f, 0.8f); // Green color (RGBA)
-
-            ImGui::Text("        github.com/AnsaryTanvir        ");
-
-            // Restore the original text color
-            style.Colors[ImGuiCol_Text] = originalTextColor;
-            ImGui::Dummy(ImVec2(0, 20));
-        }
-
-        ImGui::Indent(10);
-        ImGui::Checkbox("  Invincibility", &States::setInvincibility);
-        if (States::setInvincibility) {
-            ImGui::SliderFloat("s", &States::invincibilityDuration, 3.0f, 120.0f);
-        }
-        ImGui::Dummy(ImVec2(0, 10));
-
-        ImGui::Checkbox("  Avoid Collision", &States::avoidCollision);
-        ImGui::Dummy(ImVec2(0, 10));
-
-        ImGui::Dummy(ImVec2(0,50));
         ImGui::End();
     }
 }
@@ -133,9 +103,6 @@ void DesignAndDrawMenu() {
 
 /**
  * @brief Draws the ImGui menu internally with the specified width and height.
- *
- * @param width  The width of the display.
- * @param height The height of the display.
  */
 void drawImGuiMenuInternally(int width, int height) {
 
@@ -156,19 +123,11 @@ void drawImGuiMenuInternally(int width, int height) {
 
 /**
  * @brief Function pointer type for the original eglSwapBuffers function.
- *
- * @param eglDisplay The EGL display.
- * @param eglSurface The EGL surface.
- * @return EGLBoolean indicating the success of the swap operation.
  */
 EGLBoolean (*eglSwapBuffersOrigin)(EGLDisplay eglDisplay, EGLSurface eglSurface);
 
 /**
  * @brief Replacement function for eglSwapBuffers that integrates ImGui rendering.
- *
- * @param eglDisplay The EGL display.
- * @param eglSurface The EGL surface.
- * @return EGLBoolean indicating the success of the swap operation.
  */
 EGLBoolean eglSwapBuffersReplace(EGLDisplay eglDisplay, EGLSurface eglSurface) {
 
@@ -187,19 +146,11 @@ EGLBoolean eglSwapBuffersReplace(EGLDisplay eglDisplay, EGLSurface eglSurface) {
 
 /**
  * android::InputConsumer::initializeMotionEvent(android::MotionEvent*, android::InputMessage const*)
- * void InputConsumer::initializeMotionEvent(MotionEvent* event, const InputMessage* msg)
  */
 void (*inputOrigin)(void* thiz, void* event, void* msg);
 
 /**
  * @brief Custom replacement function for Android input event handling.
- *
- * This function is a custom replacement for handling Android input events. It calls the original
- * input handling function and additionally forwards the event to ImGui for processing if necessary.
- *
- * @param thiz  A pointer to the instance or context of the input event handling.
- * @param event A pointer to additional data (can be null).
- * @param msg A pointer to additional data (can be null).
  */
 void inputReplace(void *thiz, void *event, void *msg) {
     // Call the original input handling function
@@ -211,10 +162,6 @@ void inputReplace(void *thiz, void *event, void *msg) {
 
 /**
  * @brief Initializes ImGui hooks by hooking functions and symbols.
- *
- * This function waits for the "libEGL.so" library to be loaded, hooks the eglSwapBuffers function,
- * hooks input-related functions, and initializes ImGui hooks.
- * It ensures that ImGui Hooks are initialized when the required libraries are available.
  */
 void initializeImGuiHooks() {
 
@@ -301,4 +248,3 @@ int main(){
     pthread_t ptid;
     pthread_create(&ptid, NULL, hackThread, NULL);
 }
-
