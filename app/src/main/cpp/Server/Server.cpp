@@ -371,8 +371,9 @@ void UpdateReplace(void* instance){
     if( instance != NULL ){
         if (States::esp) {
             unsigned long libBase = getLibraryBase("libil2cpp.so");
-            LOGD("libBase: %p", (void*)libBase);
-            // Здесь будет ESP (боксы, линии)
+            // player_main_camera = 0xE8, view_matrix = 0x100
+            LOGD("ESP: libBase=%p", (void*)libBase);
+            // Здесь будет чтение ViewMatrix и отрисовка ESP
         }
         if (States::speedHack) {
             // Здесь будет Speed Hack
