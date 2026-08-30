@@ -337,14 +337,6 @@ EGLBoolean eglSwapBuffersReplace(EGLDisplay eglDisplay, EGLSurface eglSurface) {
 }
 
 
-void (*inputOrigin)(void* thiz, void* event, void* msg);
-
-void inputReplace(void *thiz, void *event, void *msg) {
-
-    ImGui_ImplAndroid_HandleInputEvent((AInputEvent *)thiz);
-    inputOrigin(thiz, event, msg);
-}
-
 void initializeImGuiHooks() {
 
     do {
@@ -353,9 +345,6 @@ void initializeImGuiHooks() {
 
     auto eglSwapBuffers = DobbySymbolResolver("libEGL.so", "eglSwapBuffers");
     DobbyHook((void *)eglSwapBuffers, (void *)eglSwapBuffersReplace, (void **)&eglSwapBuffersOrigin);
-
-    auto input = DobbySymbolResolver("libinput.so", "_ZN7android13InputConsumer21initializeMotionEventEPNS_11MotionEventEPKNS_12InputMessageE");
-    DobbyHook((void *)input, (void *)inputReplace, (void **)&inputOrigin);
 
     LOGD("ImGui Hooks initialized");
 }
