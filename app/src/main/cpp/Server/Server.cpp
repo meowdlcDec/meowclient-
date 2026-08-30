@@ -25,9 +25,10 @@
 
 namespace States{
 
-    static bool     setInvincibility{false};
-    static float    invincibilityDuration{3.0};
-    static bool     avoidCollision{false};
+    static bool     speedHack{false};
+    static bool     spinBot{false};
+    static bool     silentAim{false};
+    static bool     esp{false};
 }
 
 
@@ -83,8 +84,22 @@ void DesignAndDrawMenu() {
         ImGui::Text("Meow Client v1.0");
         ImGui::Separator();
 
-        ImGui::Checkbox("Speed Hack", &States::setInvincibility);
-        ImGui::Checkbox("SpinBot 360", &States::avoidCollision);
+        if (ImGui::CollapsingHeader("Movement")) {
+            ImGui::Checkbox("Speed Hack", &States::speedHack);
+            ImGui::Checkbox("SpinBot 360", &States::spinBot);
+        }
+
+        if (ImGui::CollapsingHeader("Combat")) {
+            ImGui::Checkbox("Silent Aim", &States::silentAim);
+        }
+
+        if (ImGui::CollapsingHeader("Visual")) {
+            ImGui::Checkbox("ESP", &States::esp);
+        }
+
+        if (ImGui::CollapsingHeader("Settings")) {
+            ImGui::Text("Settings coming soon");
+        }
 
         ImGui::End();
     }
@@ -166,25 +181,6 @@ void initializeImGuiHooks() {
 /** --------------------------------ImGui End-------------------------------------------------- */
 
 
-void (*StartInvcibilityOrigin)(void* instance, float duration);
-void StartInvcibilityReplace(void* instance, float duration){
-
-    if ( instance != NULL and States::setInvincibility )
-        StartInvcibilityOrigin(instance, States::invincibilityDuration);
-    else
-        StartInvcibilityOrigin(instance, duration);
-}
-
-void (*HandleCollisionWithObstaclesOrigin)(void* instance);
-void HandleCollisionWithObstaclesReplace(void* instance){
-
-    if ( instance != NULL and States::avoidCollision ){
-        return;
-    }else{
-        HandleCollisionWithObstaclesOrigin(instance);
-    }
-}
-
 void (*UpdateOrigin)(void* instance);
 void UpdateReplace(void* instance){
 
@@ -204,8 +200,6 @@ void initializeUnityHooks(){
     LOGD("Base of libil2cpp.so : %p ", (void*) libBase );
 
     DobbyHook( (void*) getRealOffset(libBase,CharacterPlayer::Update          ), (void*) UpdateReplace            , (void**) &UpdateOrigin            );
-    DobbyHook( (void*) getRealOffset(libBase,CharacterPlayer::StartInvcibility), (void*) StartInvcibilityReplace  , (void**) &StartInvcibilityOrigin  );
-    DobbyHook( (void*) getRealOffset(libBase,GameController::HandleCollisionWithObstacles), (void*) HandleCollisionWithObstaclesReplace , (void**) &HandleCollisionWithObstaclesOrigin  );
 }
 
 void* hackThread(void* ){
