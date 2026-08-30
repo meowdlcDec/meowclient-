@@ -337,12 +337,8 @@ EGLBoolean eglSwapBuffersReplace(EGLDisplay eglDisplay, EGLSurface eglSurface) {
 void (*inputOrigin)(void* thiz, void* event, void* msg);
 
 void inputReplace(void *thiz, void *event, void *msg) {
-    // Сначала Unity
     inputOrigin(thiz, event, msg);
-
-    // Потом ImGui с задержкой
-    usleep(50000); // 50 мс
-
+    usleep(50000);
     ImGui_ImplAndroid_HandleInputEvent((AInputEvent *)thiz);
 }
 
@@ -373,7 +369,17 @@ void (*UpdateOrigin)(void* instance);
 void UpdateReplace(void* instance){
 
     if( instance != NULL ){
-      // Do Something
+        if (States::esp) {
+            unsigned long libBase = getLibraryBase("libil2cpp.so");
+            LOGD("libBase: %p", (void*)libBase);
+            // Здесь будет ESP (боксы, линии)
+        }
+        if (States::speedHack) {
+            // Здесь будет Speed Hack
+        }
+        if (States::spinBot) {
+            // Здесь будет SpinBot
+        }
     }
     UpdateOrigin(instance);
 }
