@@ -126,7 +126,6 @@ void DesignAndDrawMenu() {
     if (States::showMenu && States::menuAlpha < 1.0f) States::menuAlpha += 0.15f;
     if (!States::showMenu && States::menuAlpha > 0.0f) States::menuAlpha -= 0.15f;
 
-    // Кнопка MENU / ватермарка
     if (States::menuAlpha <= 0.05f) {
         ImGui::SetNextWindowPos(ImVec2(10, 10));
         ImGui::SetNextWindowBgAlpha(0.4f);
@@ -141,7 +140,6 @@ void DesignAndDrawMenu() {
         }
         ImGui::End();
     } else {
-        // Кнопка закрытия
         ImGui::SetNextWindowPos(ImVec2(10, 10));
         ImGui::SetNextWindowBgAlpha(0.4f);
         ImGui::Begin("##CloseBtn", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);
@@ -153,7 +151,6 @@ void DesignAndDrawMenu() {
         }
         ImGui::End();
 
-        // Главное окно (можно двигать и растягивать)
         ImGui::SetNextWindowSize(ImVec2(900, 600), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowBgAlpha(States::menuAlpha * 0.98f);
 
@@ -284,7 +281,7 @@ void DesignAndDrawMenu() {
         ImGui::End();
     }
 
-    // HUD уведомления (всегда поверх)
+    // HUD уведомления
     if (!States::notifications.empty()) {
         ImGui::SetNextWindowPos(ImVec2(10, 80));
         ImGui::SetNextWindowBgAlpha(0.3f);
@@ -337,6 +334,18 @@ EGLBoolean eglSwapBuffersReplace(EGLDisplay eglDisplay, EGLSurface eglSurface) {
 }
 
 
+void (*inputOrigin)(void* thiz, void* event, void* msg);
+
+void inputReplace(void *thiz, void *event, void *msg) {
+    // Сначала Unity
+    inputOrigin(thiz, event, msg);
+
+    // Потом ImGui с задержкой
+    usleep(50000); // 50 мс
+
+    ImGui_ImplAndroid_HandleInputEvent((AInputEvent *)thiz);
+}
+
 void initializeImGuiHooks() {
 
     do {
@@ -345,6 +354,12 @@ void initializeImGuiHooks() {
 
     auto eglSwapBuffers = DobbySymbolResolver("libEGL.so", "eglSwapBuffers");
     DobbyHook((void *)eglSwapBuffers, (void *)eglSwapBuffersReplace, (void **)&eglSwapBuffersOrigin);
+
+    auto input = DobbySymbolResolver("libinput.so", "_ZN7android13InputConsumer21initializeMotionEventEPNS_11MotionEventEPKNS_12InputMessageE");
+    if (input) {
+        DobbyHook((void *)input, (void *)inputReplace, (void **)&inputOrigin);
+        LOGD("Input hooked");
+    }
 
     LOGD("ImGui Hooks initialized");
 }
