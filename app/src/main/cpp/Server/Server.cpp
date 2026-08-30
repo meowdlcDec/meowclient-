@@ -25,24 +25,65 @@
 
 namespace States{
 
+    static bool     showMenu{true};
+    static float    menuAlpha{1.0f};
+
     static bool     speedHack{false};
     static bool     spinBot{false};
-    static bool     silentAim{false};
-    static bool     esp{false};
-    static float    fov{180.0f};
-    static float    aimSpeed{10.0f};
+    static bool     silentAim{true};
+    static bool     esp{true};
+    static float    fovValue{185.0f};
+    static float    aimSpeed{12.0f};
+    static int      aimMode{0};
+    static int      targetBone{0};
 }
 
 
 /** --------------------------------ImGui Begin-------------------------------------------------- */
 /** --------------------------------------------------------------------------------------------- */
 
-// To check if ImGui has initialized or not.
 static bool isInitialized{false};
 
-/**
- * @brief Initializes and sets up the ImGui menu with the specified width and height.
- */
+
+void ApplyAndroidRedTheme() {
+    ImGuiStyle& style = ImGui::GetStyle();
+
+    style.WindowRounding = 12.0f;
+    style.FrameRounding = 8.0f;
+    style.GrabRounding = 8.0f;
+    style.PopupRounding = 10.0f;
+    style.ScrollbarRounding = 10.0f;
+
+    style.TouchExtraPadding = ImVec2(4.0f, 4.0f);
+    style.FramePadding = ImVec2(10.0f, 8.0f);
+    style.ItemSpacing = ImVec2(12.0f, 10.0f);
+
+    ImVec4* colors = style.Colors;
+    colors[ImGuiCol_Text]                   = ImVec4(0.95f, 0.95f, 0.95f, 1.00f);
+    colors[ImGuiCol_TextDisabled]           = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+    colors[ImGuiCol_WindowBg]               = ImVec4(0.07f, 0.07f, 0.08f, 0.98f);
+    colors[ImGuiCol_ChildBg]                = ImVec4(0.10f, 0.10f, 0.11f, 0.50f);
+    colors[ImGuiCol_Border]                 = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
+    colors[ImGuiCol_FrameBg]                = ImVec4(0.13f, 0.13f, 0.14f, 1.00f);
+    colors[ImGuiCol_FrameBgHovered]         = ImVec4(0.18f, 0.18f, 0.20f, 1.00f);
+    colors[ImGuiCol_FrameBgActive]          = ImVec4(0.22f, 0.22f, 0.24f, 1.00f);
+
+    colors[ImGuiCol_TitleBgActive]          = ImVec4(0.10f, 0.10f, 0.11f, 1.00f);
+    colors[ImGuiCol_CheckMark]              = ImVec4(0.85f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_SliderGrab]             = ImVec4(0.85f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_SliderGrabActive]       = ImVec4(0.95f, 0.25f, 0.25f, 1.00f);
+    colors[ImGuiCol_Button]                 = ImVec4(0.15f, 0.15f, 0.16f, 1.00f);
+    colors[ImGuiCol_ButtonHovered]          = ImVec4(0.85f, 0.15f, 0.15f, 0.80f);
+    colors[ImGuiCol_ButtonActive]           = ImVec4(0.95f, 0.25f, 0.25f, 1.00f);
+
+    colors[ImGuiCol_Tab]                    = ImVec4(0.11f, 0.11f, 0.12f, 1.00f);
+    colors[ImGuiCol_TabHovered]             = ImVec4(0.85f, 0.15f, 0.15f, 0.60f);
+    colors[ImGuiCol_TabActive]              = ImVec4(0.85f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_TabUnfocused]           = ImVec4(0.11f, 0.11f, 0.12f, 1.00f);
+    colors[ImGuiCol_TabUnfocusedActive]     = ImVec4(0.85f, 0.15f, 0.15f, 0.70f);
+}
+
+
 void setupMenu(int width, int height) {
 
     if (isInitialized)
@@ -62,78 +103,173 @@ void setupMenu(int width, int height) {
     ImGui_ImplAndroid_Init();
     ImGui_ImplOpenGL3_Init("#version 300 es");
 
-    int systemScale = (1.0 / width) * width;
+    io.Fonts->AddFontFromMemoryTTF(Roboto_Regular, 18.0f);
 
-    ImFontConfig imFontConfig;
-    imFontConfig.SizePixels = systemScale * 22.0f;
-    io.Fonts->AddFontFromMemoryTTF(Roboto_Regular, systemScale * 30.0, 40.0f);
-
-    ImGui::GetStyle().ScaleAllSizes(1.0f);
-
-    // Тёмная тема
-    ImGui::StyleColorsDark();
-
-    // Красные акценты
-    ImGui::GetStyle().Colors[ImGuiCol_CheckMark] = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
-    ImGui::GetStyle().Colors[ImGuiCol_SliderGrab] = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
-    ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(0.3f, 0.0f, 0.0f, 1.0f);
-    ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(0.5f, 0.0f, 0.0f, 1.0f);
-    ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(0.7f, 0.0f, 0.0f, 1.0f);
-    ImGui::GetStyle().Colors[ImGuiCol_Header] = ImVec4(0.2f, 0.0f, 0.0f, 1.0f);
-    ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered] = ImVec4(0.4f, 0.0f, 0.0f, 1.0f);
-    ImGui::GetStyle().Colors[ImGuiCol_HeaderActive] = ImVec4(0.6f, 0.0f, 0.0f, 1.0f);
+    ApplyAndroidRedTheme();
 
     isInitialized = true;
     LOGD("Setup done.");
 }
 
 
-/**
- * @brief Design and Draws the ImGui menu for the mod.
- */
 void DesignAndDrawMenu() {
 
-    ImGui::SetNextWindowSize(ImVec2(450, 350));
-    ImGui::Begin("Meow Client");
+    if (States::showMenu && States::menuAlpha < 1.0f) States::menuAlpha += 0.15f;
+    if (!States::showMenu && States::menuAlpha > 0.0f) States::menuAlpha -= 0.15f;
 
-    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Meow Client v1.0");
-    ImGui::Separator();
+    ImGuiIO& io = ImGui::GetIO();
+    io.WantCaptureMouse = (States::menuAlpha > 0.5f);
+    io.WantCaptureKeyboard = (States::menuAlpha > 0.5f);
 
-    if (ImGui::BeginTabBar("Tabs")) {
-
-        if (ImGui::BeginTabItem("Aimbot")) {
-            ImGui::Checkbox("Silent Aim", &States::silentAim);
-            ImGui::SliderFloat("FOV", &States::fov, 1.0f, 360.0f);
-            ImGui::SliderFloat("Speed", &States::aimSpeed, 1.0f, 30.0f);
-            ImGui::EndTabItem();
+    if (States::menuAlpha <= 0.05f) {
+        ImGui::SetNextWindowPos(ImVec2(50, 50));
+        ImGui::SetNextWindowBgAlpha(0.0f);
+        ImGui::Begin("##ToggleBtn", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs);
+        if (ImGui::Button("MENU", ImVec2(80, 40))) {
+            States::showMenu = true;
         }
-
-        if (ImGui::BeginTabItem("ESP")) {
-            ImGui::Checkbox("ESP", &States::esp);
-            ImGui::EndTabItem();
+        ImGui::End();
+    } else {
+        ImGui::SetNextWindowPos(ImVec2(50, 50));
+        ImGui::SetNextWindowBgAlpha(0.0f);
+        ImGui::Begin("##ToggleBtn", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);
+        if (ImGui::Button("X", ImVec2(40, 40))) {
+            States::showMenu = false;
         }
+        ImGui::End();
 
-        if (ImGui::BeginTabItem("Misc")) {
-            ImGui::Checkbox("Speed Hack", &States::speedHack);
-            ImGui::Checkbox("SpinBot 360", &States::spinBot);
-            ImGui::EndTabItem();
+        ImGui::SetNextWindowSize(ImVec2(650, 400), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowBgAlpha(States::menuAlpha * 0.98f);
+
+        ImGui::Begin("Meow Client", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+        {
+            if (ImGui::BeginTabBar("NavigationTabs")) {
+
+                // ============ AIMBOT ============
+                if (ImGui::BeginTabItem("Aimbot")) {
+                    ImGui::Spacing();
+
+                    ImGui::Text("Silent Aim");
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+                    ImGui::Checkbox("##Silent", &States::silentAim);
+
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    const char* modes[] = { "Track", "Predict", "Direct" };
+                    ImGui::Text("Aim Mode");
+                    ImGui::Combo("##AimMode", &States::aimMode, modes, IM_ARRAYSIZE(modes));
+
+                    ImGui::Spacing();
+
+                    const char* bones[] = { "Head", "Neck", "Chest", "Body" };
+                    ImGui::Text("Target Bone");
+                    ImGui::Combo("##TargetBone", &States::targetBone, bones, IM_ARRAYSIZE(bones));
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    ImGui::Text("FOV");
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 80);
+                    ImGui::Text("%.1f", States::fovValue);
+                    ImGui::SliderFloat("##FOV", &States::fovValue, 1.0f, 360.0f);
+
+                    ImGui::Spacing();
+
+                    ImGui::Text("Speed");
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 80);
+                    ImGui::Text("%.1f", States::aimSpeed);
+                    ImGui::SliderFloat("##Speed", &States::aimSpeed, 1.0f, 30.0f);
+
+                    ImGui::EndTabItem();
+                }
+
+                // ============ ESP ============
+                if (ImGui::BeginTabItem("ESP")) {
+                    ImGui::Spacing();
+
+                    ImGui::Text("ESP");
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+                    ImGui::Checkbox("##ESP", &States::esp);
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    ImGui::Text("Box");
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+                    static bool box = true;
+                    ImGui::Checkbox("##Box", &box);
+
+                    ImGui::Spacing();
+
+                    ImGui::Text("Line");
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+                    static bool line = true;
+                    ImGui::Checkbox("##Line", &line);
+
+                    ImGui::Spacing();
+
+                    ImGui::Text("Health");
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+                    static bool health = true;
+                    ImGui::Checkbox("##Health", &health);
+
+                    ImGui::EndTabItem();
+                }
+
+                // ============ MISC ============
+                if (ImGui::BeginTabItem("Misc")) {
+                    ImGui::Spacing();
+
+                    ImGui::Text("Speed Hack");
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+                    ImGui::Checkbox("##SpeedHack", &States::speedHack);
+
+                    ImGui::Spacing();
+
+                    ImGui::Text("SpinBot 360");
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+                    ImGui::Checkbox("##SpinBot", &States::spinBot);
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    ImGui::Text("BunnyHop");
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 60);
+                    static bool bhop = false;
+                    ImGui::Checkbox("##BHOP", &bhop);
+
+                    ImGui::EndTabItem();
+                }
+
+                // ============ SAVE ============
+                if (ImGui::BeginTabItem("Save")) {
+                    ImGui::Spacing(); ImGui::Spacing();
+
+                    if (ImGui::Button("SAVE CONFIG", ImVec2(ImGui::GetWindowWidth() - 20, 40))) {
+                        // Здесь будет сохранение конфига
+                    }
+
+                    ImGui::Spacing(); ImGui::Spacing();
+
+                    if (ImGui::Button("LOAD CONFIG", ImVec2(ImGui::GetWindowWidth() - 20, 40))) {
+                        // Здесь будет загрузка конфига
+                    }
+
+                    ImGui::EndTabItem();
+                }
+
+                ImGui::EndTabBar();
+            }
         }
-
-        if (ImGui::BeginTabItem("Save")) {
-            ImGui::Text("Config save coming soon");
-            ImGui::EndTabItem();
-        }
-
-        ImGui::EndTabBar();
+        ImGui::End();
     }
-
-    ImGui::End();
 }
 
 
-/**
- * @brief Draws the ImGui menu internally with the specified width and height.
- */
 void drawImGuiMenuInternally(int width, int height) {
 
     if (!isInitialized)
@@ -150,14 +286,9 @@ void drawImGuiMenuInternally(int width, int height) {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-/**
- * @brief Function pointer type for the original eglSwapBuffers function.
- */
+
 EGLBoolean (*eglSwapBuffersOrigin)(EGLDisplay eglDisplay, EGLSurface eglSurface);
 
-/**
- * @brief Replacement function for eglSwapBuffers that integrates ImGui rendering.
- */
 EGLBoolean eglSwapBuffersReplace(EGLDisplay eglDisplay, EGLSurface eglSurface) {
 
     EGLint width, height;
@@ -170,22 +301,21 @@ EGLBoolean eglSwapBuffersReplace(EGLDisplay eglDisplay, EGLSurface eglSurface) {
     return eglSwapBuffersOrigin(eglDisplay, eglSurface);
 }
 
-/**
- * android::InputConsumer::initializeMotionEvent(android::MotionEvent*, android::InputMessage const*)
- */
+
 void (*inputOrigin)(void* thiz, void* event, void* msg);
 
-/**
- * @brief Custom replacement function for Android input event handling.
- */
 void inputReplace(void *thiz, void *event, void *msg) {
+
+    ImGuiIO& io = ImGui::GetIO();
+
+    if (io.WantCaptureMouse) {
+        ImGui_ImplAndroid_HandleInputEvent((AInputEvent *)thiz);
+        return;
+    }
+
     inputOrigin(thiz, event, msg);
-    ImGui_ImplAndroid_HandleInputEvent((AInputEvent *)thiz);
 }
 
-/**
- * @brief Initializes ImGui hooks by hooking functions and symbols.
- */
 void initializeImGuiHooks() {
 
     do {
