@@ -29,6 +29,8 @@ namespace States{
     static bool     spinBot{false};
     static bool     silentAim{false};
     static bool     esp{false};
+    static float    fov{180.0f};
+    static float    aimSpeed{10.0f};
 }
 
 
@@ -68,6 +70,19 @@ void setupMenu(int width, int height) {
 
     ImGui::GetStyle().ScaleAllSizes(1.0f);
 
+    // Тёмная тема
+    ImGui::StyleColorsDark();
+
+    // Красные акценты
+    ImGui::GetStyle().Colors[ImGuiCol_CheckMark] = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+    ImGui::GetStyle().Colors[ImGuiCol_SliderGrab] = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+    ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(0.3f, 0.0f, 0.0f, 1.0f);
+    ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(0.5f, 0.0f, 0.0f, 1.0f);
+    ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(0.7f, 0.0f, 0.0f, 1.0f);
+    ImGui::GetStyle().Colors[ImGuiCol_Header] = ImVec4(0.2f, 0.0f, 0.0f, 1.0f);
+    ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered] = ImVec4(0.4f, 0.0f, 0.0f, 1.0f);
+    ImGui::GetStyle().Colors[ImGuiCol_HeaderActive] = ImVec4(0.6f, 0.0f, 0.0f, 1.0f);
+
     isInitialized = true;
     LOGD("Setup done.");
 }
@@ -78,31 +93,41 @@ void setupMenu(int width, int height) {
  */
 void DesignAndDrawMenu() {
 
-    {
-        ImGui::Begin("Meow Client");
+    ImGui::SetNextWindowSize(ImVec2(450, 350));
+    ImGui::Begin("Meow Client");
 
-        ImGui::Text("Meow Client v1.0");
-        ImGui::Separator();
+    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Meow Client v1.0");
+    ImGui::Separator();
 
-        if (ImGui::CollapsingHeader("Movement")) {
+    if (ImGui::BeginTabBar("Tabs")) {
+
+        if (ImGui::BeginTabItem("Aimbot")) {
+            ImGui::Checkbox("Silent Aim", &States::silentAim);
+            ImGui::SliderFloat("FOV", &States::fov, 1.0f, 360.0f);
+            ImGui::SliderFloat("Speed", &States::aimSpeed, 1.0f, 30.0f);
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("ESP")) {
+            ImGui::Checkbox("ESP", &States::esp);
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Misc")) {
             ImGui::Checkbox("Speed Hack", &States::speedHack);
             ImGui::Checkbox("SpinBot 360", &States::spinBot);
+            ImGui::EndTabItem();
         }
 
-        if (ImGui::CollapsingHeader("Combat")) {
-            ImGui::Checkbox("Silent Aim", &States::silentAim);
+        if (ImGui::BeginTabItem("Save")) {
+            ImGui::Text("Config save coming soon");
+            ImGui::EndTabItem();
         }
 
-        if (ImGui::CollapsingHeader("Visual")) {
-            ImGui::Checkbox("ESP", &States::esp);
-        }
-
-        if (ImGui::CollapsingHeader("Settings")) {
-            ImGui::Text("Settings coming soon");
-        }
-
-        ImGui::End();
+        ImGui::EndTabBar();
     }
+
+    ImGui::End();
 }
 
 
