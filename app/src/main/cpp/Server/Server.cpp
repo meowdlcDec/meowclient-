@@ -103,7 +103,8 @@ void setupMenu(int width, int height) {
     ImGui_ImplAndroid_Init();
     ImGui_ImplOpenGL3_Init("#version 300 es");
 
-    io.Fonts->AddFontFromMemoryTTF(Roboto_Regular, sizeof(Roboto_Regular), 18.0f);
+    // Увеличенный шрифт
+    io.Fonts->AddFontFromMemoryTTF(Roboto_Regular, sizeof(Roboto_Regular), 28.0f);
 
     ApplyAndroidRedTheme();
 
@@ -121,7 +122,7 @@ void DesignAndDrawMenu() {
         ImGui::SetNextWindowPos(ImVec2(50, 50));
         ImGui::SetNextWindowBgAlpha(0.0f);
         ImGui::Begin("##ToggleBtn", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs);
-        if (ImGui::Button("MENU", ImVec2(80, 40))) {
+        if (ImGui::Button("MENU", ImVec2(120, 60))) {
             States::showMenu = true;
         }
         ImGui::End();
@@ -129,15 +130,15 @@ void DesignAndDrawMenu() {
         ImGui::SetNextWindowPos(ImVec2(50, 50));
         ImGui::SetNextWindowBgAlpha(0.0f);
         ImGui::Begin("##ToggleBtn", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);
-        if (ImGui::Button("X", ImVec2(40, 40))) {
+        if (ImGui::Button("X", ImVec2(60, 60))) {
             States::showMenu = false;
         }
         ImGui::End();
 
-        ImGui::SetNextWindowSize(ImVec2(650, 400), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(800, 500), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowBgAlpha(States::menuAlpha * 0.98f);
 
-        ImGui::Begin("Meow Client", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+        ImGui::Begin("Meow Client", nullptr, ImGuiWindowFlags_NoCollapse);
         {
             if (ImGui::BeginTabBar("NavigationTabs")) {
 
@@ -245,13 +246,13 @@ void DesignAndDrawMenu() {
                 if (ImGui::BeginTabItem("Save")) {
                     ImGui::Spacing(); ImGui::Spacing();
 
-                    if (ImGui::Button("SAVE CONFIG", ImVec2(ImGui::GetWindowWidth() - 20, 40))) {
+                    if (ImGui::Button("SAVE CONFIG", ImVec2(ImGui::GetWindowWidth() - 20, 60))) {
                         // Здесь будет сохранение конфига
                     }
 
                     ImGui::Spacing(); ImGui::Spacing();
 
-                    if (ImGui::Button("LOAD CONFIG", ImVec2(ImGui::GetWindowWidth() - 20, 40))) {
+                    if (ImGui::Button("LOAD CONFIG", ImVec2(ImGui::GetWindowWidth() - 20, 60))) {
                         // Здесь будет загрузка конфига
                     }
 
@@ -302,8 +303,9 @@ void (*inputOrigin)(void* thiz, void* event, void* msg);
 
 void inputReplace(void *thiz, void *event, void *msg) {
 
-    inputOrigin(thiz, event, msg);
+    // Важно: сначала передать событие ImGui, потом в игру
     ImGui_ImplAndroid_HandleInputEvent((AInputEvent *)thiz);
+    inputOrigin(thiz, event, msg);
 }
 
 void initializeImGuiHooks() {
