@@ -39,16 +39,12 @@ static bool isInitialized{false};
 
 /**
  * @brief Initializes and sets up the ImGui menu with the specified width and height.
- *
- * @param width  The width of the display.
- * @param height The height of the display.
  */
 void setupMenu(int width, int height) {
 
     if (isInitialized)
         return;
 
-    // Create a new ImGui context
     ImGuiContext* ImGuiContext = ImGui::CreateContext();
     if (!ImGuiContext) {
         LOGD("Failed to create ImGuiContext");
@@ -56,25 +52,19 @@ void setupMenu(int width, int height) {
     }
 
     ImGuiIO& io = ImGui::GetIO();
-
-    // Set the display size
     io.DisplaySize = ImVec2((float)width, (float)height);
     io.ConfigWindowsMoveFromTitleBarOnly = true;
     io.IniFilename = nullptr;
 
-    // Setup Platform/Renderer backends
     ImGui_ImplAndroid_Init();
     ImGui_ImplOpenGL3_Init("#version 300 es");
 
-    // Calculate the system scale
     int systemScale = (1.0 / width) * width;
 
-    // Configure font settings
     ImFontConfig imFontConfig;
     imFontConfig.SizePixels = systemScale * 22.0f;
     io.Fonts->AddFontFromMemoryTTF(Roboto_Regular, systemScale * 30.0, 40.0f);
 
-    // Scale ImGui style
     ImGui::GetStyle().ScaleAllSizes(1.0f);
 
     isInitialized = true;
@@ -114,7 +104,6 @@ void drawImGuiMenuInternally(int width, int height) {
     ImGui_ImplAndroid_NewFrame(width, height);
     ImGui::NewFrame();
 
-    // Call the function that implements the Menu
     DesignAndDrawMenu();
 
     ImGui::Render();
@@ -135,10 +124,7 @@ EGLBoolean eglSwapBuffersReplace(EGLDisplay eglDisplay, EGLSurface eglSurface) {
     eglQuerySurface(eglDisplay, eglSurface, EGL_WIDTH, &width);
     eglQuerySurface(eglDisplay, eglSurface, EGL_HEIGHT, &height);
 
-    // Setup ImGui (once)
     setupMenu(width, height);
-
-    // Draw Menu (every frame)
     drawImGuiMenuInternally(width, height);
 
     return eglSwapBuffersOrigin(eglDisplay, eglSurface);
@@ -153,10 +139,7 @@ void (*inputOrigin)(void* thiz, void* event, void* msg);
  * @brief Custom replacement function for Android input event handling.
  */
 void inputReplace(void *thiz, void *event, void *msg) {
-    // Call the original input handling function
     inputOrigin(thiz, event, msg);
-
-    // Forward the input event to ImGui for processing
     ImGui_ImplAndroid_HandleInputEvent((AInputEvent *)thiz);
 }
 
@@ -165,16 +148,13 @@ void inputReplace(void *thiz, void *event, void *msg) {
  */
 void initializeImGuiHooks() {
 
-    // Wait until the "libEGL.so" library is loaded
     do {
         sleep(1);
     } while (!isLibraryLoaded("libEGL.so"));
 
-    // Hook eglSwapBuffers
     auto eglSwapBuffers = DobbySymbolResolver("libEGL.so", "eglSwapBuffers");
     DobbyHook((void *)eglSwapBuffers, (void *)eglSwapBuffersReplace, (void **)&eglSwapBuffersOrigin);
 
-    // Hook Input
     auto input = DobbySymbolResolver("libinput.so", "_ZN7android13InputConsumer21initializeMotionEventEPNS_11MotionEventEPKNS_12InputMessageE");
     DobbyHook((void *)input, (void *)inputReplace, (void **)&inputOrigin);
 
@@ -216,7 +196,6 @@ void UpdateReplace(void* instance){
 
 void initializeUnityHooks(){
 
-    // Wait until the "libil2cpp.so" library is loaded
     do {
         sleep(1);
     } while (!isLibraryLoaded("libil2cpp.so"));
@@ -224,17 +203,14 @@ void initializeUnityHooks(){
     unsigned long libBase = getLibraryBase("libil2cpp.so");
     LOGD("Base of libil2cpp.so : %p ", (void*) libBase );
 
-
     DobbyHook( (void*) getRealOffset(libBase,CharacterPlayer::Update          ), (void*) UpdateReplace            , (void**) &UpdateOrigin            );
     DobbyHook( (void*) getRealOffset(libBase,CharacterPlayer::StartInvcibility), (void*) StartInvcibilityReplace  , (void**) &StartInvcibilityOrigin  );
-
     DobbyHook( (void*) getRealOffset(libBase,GameController::HandleCollisionWithObstacles), (void*) HandleCollisionWithObstaclesReplace , (void**) &HandleCollisionWithObstaclesOrigin  );
-
 }
 
 void* hackThread(void* ){
 
-    initializeUnityHooks();
+    // initializeUnityHooks(); // Пока отключено
     initializeImGuiHooks();
 
     return  NULL;
