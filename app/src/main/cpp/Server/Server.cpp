@@ -117,10 +117,6 @@ void DesignAndDrawMenu() {
     if (States::showMenu && States::menuAlpha < 1.0f) States::menuAlpha += 0.15f;
     if (!States::showMenu && States::menuAlpha > 0.0f) States::menuAlpha -= 0.15f;
 
-    ImGuiIO& io = ImGui::GetIO();
-    io.WantCaptureMouse = (States::menuAlpha > 0.5f);
-    io.WantCaptureKeyboard = (States::menuAlpha > 0.5f);
-
     if (States::menuAlpha <= 0.05f) {
         ImGui::SetNextWindowPos(ImVec2(50, 50));
         ImGui::SetNextWindowBgAlpha(0.0f);
@@ -306,14 +302,8 @@ void (*inputOrigin)(void* thiz, void* event, void* msg);
 
 void inputReplace(void *thiz, void *event, void *msg) {
 
-    ImGuiIO& io = ImGui::GetIO();
-
-    if (io.WantCaptureMouse) {
-        ImGui_ImplAndroid_HandleInputEvent((AInputEvent *)thiz);
-        return;
-    }
-
     inputOrigin(thiz, event, msg);
+    ImGui_ImplAndroid_HandleInputEvent((AInputEvent *)thiz);
 }
 
 void initializeImGuiHooks() {
