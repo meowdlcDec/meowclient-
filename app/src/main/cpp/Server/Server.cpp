@@ -103,7 +103,7 @@ void setupMenu(int width, int height) {
     ImGui_ImplAndroid_Init();
     ImGui_ImplOpenGL3_Init("#version 300 es");
 
-    io.Fonts->AddFontFromMemoryTTF(Roboto_Regular, 18.0f);
+    io.Fonts->AddFontFromMemoryTTF(Roboto_Regular, sizeof(Roboto_Regular), 18.0f);
 
     ApplyAndroidRedTheme();
 
